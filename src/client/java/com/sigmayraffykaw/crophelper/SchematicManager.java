@@ -13,6 +13,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -65,10 +68,10 @@ final class SchematicManager {
                 int inChests = chest.getOrDefault(id, 0);
                 message(client, id + " x" + need + " | inventory " + inInventory + " | nearby chests " + inChests);
             }
-            message(client, "Preview only: no blocks placed. Take needed items from chests into your inventory, then run /farm build confirm.");
+            message(client, "Preview only: no blocks placed. Open your supply chest and run /farm pull to move needed stacks into your inventory.");
         } catch (Exception e) {
             message(client, "Couldn't load schematic '" + name + "': " + e.getMessage());
-            message(client, "Custom schematics go in .minecraft/config/crop-helper/schematics/<name>.json");
+            message(client, "Place <name>.json or a supported Sponge <name>.schem in .minecraft/config/crop-helper/schematics/");
         }
     }
 
@@ -109,6 +112,45 @@ final class SchematicManager {
         }
     }
 
+    static void pullFromOpenContainer(Minecraft client) {
+        if (client.player == null || client.gameMode == null) {
+            message(client, "Join a world first.");
+            return;
+        }
+        if (loadedName == null) {
+            message(client, "Preview a plan first with /farm build <name>.");
+            return;
+        }
+        if (!(client.screen instanceof AbstractContainerScreen<?>)) {
+            message(client, "Open the supply chest/container first, then run /farm pull.");
+            return;
+        }
+        try {
+            List<BuildBlock> blocks = parseBlocks(load(loadedName, client));
+            Map<String, Integer> required = countMaterials(blocks);
+            Map<String, Integer> carried = inventoryCounts(client);
+            AbstractContainerMenu menu = client.player.containerMenu;
+            int containerSlots = Math.max(0, menu.slots.size() - 36);
+            int moved = 0;
+            for (int slotIndex = 0; slotIndex < containerSlots; slotIndex++) {
+                ItemStack stack = menu.getSlot(slotIndex).getItem();
+                if (stack.isEmpty()) continue;
+                Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                if (id == null) continue;
+                String key = id.toString();
+                int needed = required.getOrDefault(key, 0);
+                int have = carried.getOrDefault(key, 0);
+                if (needed <= have) continue;
+                int amount = stack.getCount();
+                client.gameMode.handleInventoryMouseClick(menu.containerId, slotIndex, 0, ClickType.QUICK_MOVE, client.player);
+                carried.merge(key, amount, Integer::sum);
+                moved++;
+            }
+            message(client, moved == 0 ? "No needed material stacks found in the open container." : "Requested " + moved + " matching stack(s) from the open container. Check your inventory before building.");
+        } catch (Exception e) {
+            message(client, "Could not pull materials: " + e.getMessage());
+        }
+    }
     static void stop(Minecraft client) {
         building = false;
         queue.clear();
@@ -174,14 +216,17 @@ final class SchematicManager {
 
     private static JsonObject load(String name, Minecraft client) throws Exception {
         if (!name.matches("[A-Za-z0-9_-]{1,48}")) throw new IllegalArgumentException("Use letters, numbers, _ or - in the name.");
-        Path file = client.gameDirectory.toPath().resolve("config").resolve("crop-helper").resolve("schematics").resolve(name + ".json");
-        if (Files.isRegularFile(file)) {
-            try (var reader = Files.newBufferedReader(file)) {
+        Path directory = client.gameDirectory.toPath().resolve("config").resolve("crop-helper").resolve("schematics");
+        Path jsonFile = directory.resolve(name + ".json");
+        Path spongeFile = directory.resolve(name + ".schem");
+        if (Files.isRegularFile(jsonFile)) {
+            try (var reader = Files.newBufferedReader(jsonFile)) {
                 return JsonParser.parseReader(reader).getAsJsonObject();
             }
         }
+        if (Files.isRegularFile(spongeFile)) return SpongeSchematicReader.read(spongeFile, MAX_BLOCKS);
         try (InputStream in = SchematicManager.class.getClassLoader().getResourceAsStream("schematics/" + name + ".json")) {
-            if (in == null) throw new IllegalArgumentException("File not found.");
+            if (in == null) throw new IllegalArgumentException("File not found. Expected " + name + ".json or " + name + ".schem.");
             return JsonParser.parseReader(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
         }
     }
