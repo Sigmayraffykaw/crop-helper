@@ -46,6 +46,7 @@ public final class CropHelperClient implements ClientModInitializer {
                 .then(ClientCommandManager.literal("stop").executes(context -> {
                     farming = false;
                     pendingReplant = null;
+                    SchematicManager.stop(Minecraft.getInstance());
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming paused."));
                     return 1;
                 }))
@@ -108,17 +109,22 @@ public final class CropHelperClient implements ClientModInitializer {
                     return 1;
                 }))
                 .then(ClientCommandManager.literal("build")
+                    .then(ClientCommandManager.literal("confirm").executes(context -> {
+                        SchematicManager.confirm(Minecraft.getInstance());
+                        return 1;
+                    }))
                     .then(ClientCommandManager.argument("schematic", StringArgumentType.word())
-                        .suggests((context, builder) -> SharedSuggestionProvider.suggest(List.of("small_wheat", "carrot_patch", "potato_patch", "beetroot_patch"), builder))
                         .executes(context -> {
-                            String name = StringArgumentType.getString(context, "schematic");
-                            context.getSource().sendFeedback(Component.literal("Schematic '" + name + "' is not loaded yet. The schematic planner/build placement system is the next feature; no blocks were placed."));
-                            return 0;
+                            SchematicManager.preview(Minecraft.getInstance(), StringArgumentType.getString(context, "schematic"));
+                            return 1;
                         })))
             );
         });
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> tickFarm(client));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            tickFarm(client);
+            SchematicManager.tick(client);
+        });
     }
 
     private static void tickFarm(Minecraft client) {
