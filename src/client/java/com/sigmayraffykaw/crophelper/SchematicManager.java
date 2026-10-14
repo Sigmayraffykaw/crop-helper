@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -197,7 +197,7 @@ final class SchematicManager {
             int y = obj.get("y").getAsInt();
             int z = obj.get("z").getAsInt();
             String id = obj.get("block").getAsString();
-            ResourceLocation key = ResourceLocation.parse(id);
+            Identifier key = Identifier.parse(id);
             Block block = BuiltInRegistries.BLOCK.get(key);
             if (block == Blocks.AIR || BuiltInRegistries.BLOCK.getKey(block) == null) throw new IllegalArgumentException("Unknown or air block: " + id);
             if (Math.abs(x) > 32 || Math.abs(y) > 32 || Math.abs(z) > 32) throw new IllegalArgumentException("Offsets must be within 32 blocks.");
@@ -218,7 +218,7 @@ final class SchematicManager {
         for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
             if (stack.isEmpty()) continue;
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
             if (id != null) counts.merge(id.toString(), stack.getCount(), Integer::sum);
         }
         return counts;
@@ -236,7 +236,7 @@ final class SchematicManager {
                     for (int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack stack = container.getItem(i);
                         if (!stack.isEmpty()) {
-                            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                            Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
                             if (id != null) counts.merge(id.toString(), stack.getCount(), Integer::sum);
                         }
                     }
@@ -253,7 +253,7 @@ final class SchematicManager {
     }
 
     private static void message(Minecraft client, String text) {
-        if (client.player != null) client.player.displayClientMessage(Component.literal("[Crop Helper] " + text), false);
+        if (client.player != null) client.gui.getChat().addMessage(Component.literal("[Crop Helper] " + text));
     }
 
     private record BuildBlock(int x, int y, int z, String id, Block block) {}
