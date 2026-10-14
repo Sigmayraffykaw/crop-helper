@@ -8,9 +8,8 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "com.sigmayraffykaw.crophelper.CropHelperMod"
-    ]
+    "main": ["com.sigmayraffykaw.crophelper.CropHelperMod"],
+    "client": ["com.sigmayraffykaw.crophelper.CropHelperClient"]
   },
   "depends": {
     "fabricloader": ">=0.19.5",
