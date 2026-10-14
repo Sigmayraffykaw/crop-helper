@@ -10,6 +10,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -23,6 +24,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public final class CropHelperClient implements ClientModInitializer {
     private static boolean farming;
@@ -68,6 +71,42 @@ public final class CropHelperClient implements ClientModInitializer {
                     context.getSource().sendFeedback(Component.literal("Crop scan (" + RADIUS + "-block radius): " + mature + " mature crops, " + growing + " still growing. This scan does not include crops outside the area."));
                     return 1;
                 }))
+                .then(ClientCommandManager.literal("materials").executes(context -> {
+                    Minecraft client = Minecraft.getInstance();
+                    if (client.level == null || client.player == null) {
+                        context.getSource().sendFeedback(Component.literal("Join a world first."));
+                        return 0;
+                    }
+                    Map<String, Integer> counts = new TreeMap<>();
+                    int containers = 0;
+                    for (BlockPos pos : scanPositions(client.player.blockPosition(), RADIUS)) {
+                        var blockEntity = client.level.getBlockEntity(pos);
+                        if (!(blockEntity instanceof Container container)) continue;
+                        containers++;
+                        for (int i = 0; i < container.getContainerSize(); i++) {
+                            ItemStack stack = container.getItem(i);
+                            if (!stack.isEmpty()) {
+                                String itemName = stack.getHoverName().getString();
+                                counts.merge(itemName, stack.getCount(), Integer::sum);
+                            }
+                        }
+                    }
+                    if (containers == 0) {
+                        context.getSource().sendFeedback(Component.literal("No loaded containers found within " + RADIUS + " blocks. Move closer to the supply chest and try again."));
+                        return 0;
+                    }
+                    context.getSource().sendFeedback(Component.literal("Supply scan: checked " + containers + " nearby container(s)."));
+                    int shown = 0;
+                    for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+                        if (shown++ >= 12) {
+                            context.getSource().sendFeedback(Component.literal("...and more items. This is an inventory summary, not yet a schematic material check."));
+                            break;
+                        }
+                        context.getSource().sendFeedback(Component.literal(entry.getKey() + ": " + entry.getValue()));
+                    }
+                    if (counts.isEmpty()) context.getSource().sendFeedback(Component.literal("The nearby containers are empty."));
+                    return 1;
+                }))
                 .then(ClientCommandManager.literal("build")
                     .then(ClientCommandManager.argument("schematic", StringArgumentType.word())
                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(List.of("small_wheat", "carrot_patch", "potato_patch", "beetroot_patch"), builder))
@@ -89,9 +128,13 @@ public final class CropHelperClient implements ClientModInitializer {
         if (pendingReplant != null) {
             BlockPos cropPos = pendingReplant;
             Item seed = pendingSeed;
+            if (!client.level.isEmptyBlock(cropPos)) {
+                client.gameMode.continueDestroyBlock(cropPos, Direction.UP);
+                return;
+            }
             pendingReplant = null;
             pendingSeed = null;
-            if (client.level.isEmptyBlock(cropPos) && client.level.getBlockState(cropPos.below()).is(Blocks.FARMLAND)) {
+            if (client.level.getBlockState(cropPos.below()).is(Blocks.FARMLAND)) {
                 int slot = findHotbarItem(client, seed);
                 if (slot >= 0) {
                     client.player.getInventory().setSelectedSlot(slot);
