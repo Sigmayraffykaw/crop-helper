@@ -170,8 +170,8 @@ public final class CropHelperClient implements ClientModInitializer {
     }
 
     private static int cropAge(BlockState state) {
-        for (var entry : state.getValues().entrySet()) {
-            if (entry.getKey().getName().equals("age") && entry.getValue() instanceof Integer age) return age;
+        for (var value : state.getValues().toList()) {
+            if (value.property().getName().equals("age") && value.value() instanceof Integer age) return age;
         }
         return 0;
     }
