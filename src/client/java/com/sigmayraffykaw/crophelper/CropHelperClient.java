@@ -3,6 +3,7 @@ package com.sigmayraffykaw.crophelper;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
@@ -39,6 +40,7 @@ public final class CropHelperClient implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(ClientCommands.literal("farm")
                 .then(ClientCommands.literal("start").executes(context -> {
+                    if (!requireCore(context.getSource())) return 0;
                     farming = true;
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming enabled. Stay near your crops; use /farm stop to pause."));
                     return 1;
@@ -51,10 +53,12 @@ public final class CropHelperClient implements ClientModInitializer {
                     return 1;
                 }))
                 .then(ClientCommands.literal("status").executes(context -> {
+                    if (!requireCore(context.getSource())) return 0;
                     context.getSource().sendFeedback(Component.literal("Crop Helper: " + (farming ? "RUNNING" : "PAUSED") + ". Range: " + RADIUS + " blocks. Use /farm scan to inspect crops."));
                     return 1;
                 }))
                 .then(ClientCommands.literal("scan").executes(context -> {
+                    if (!requireCore(context.getSource())) return 0;
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
                         context.getSource().sendFeedback(Component.literal("Join a world first."));
@@ -74,6 +78,7 @@ public final class CropHelperClient implements ClientModInitializer {
                     return 1;
                 }))
                 .then(ClientCommands.literal("materials").executes(context -> {
+                    if (!requireCore(context.getSource())) return 0;
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
                         context.getSource().sendFeedback(Component.literal("Join a world first."));
@@ -110,16 +115,19 @@ public final class CropHelperClient implements ClientModInitializer {
                     return 1;
                 }))
                 .then(ClientCommands.literal("pull").executes(context -> {
+                    if (!requireCore(context.getSource())) return 0;
                     SchematicManager.pullFromOpenContainer(Minecraft.getInstance());
                     return 1;
                 }))
                 .then(ClientCommands.literal("build")
                     .then(ClientCommands.literal("confirm").executes(context -> {
+                        if (!requireCore(context.getSource())) return 0;
                         SchematicManager.confirm(Minecraft.getInstance());
                         return 1;
                     }))
                     .then(ClientCommands.argument("schematic", StringArgumentType.word())
                         .executes(context -> {
+                            if (!requireCore(context.getSource())) return 0;
                             SchematicManager.preview(Minecraft.getInstance(), StringArgumentType.getString(context, "schematic"));
                             return 1;
                         })))
@@ -127,9 +135,35 @@ public final class CropHelperClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (!hasCore(client)) {
+                if (farming) {
+                    farming = false;
+                    pendingReplant = null;
+                    pendingSeed = null;
+                    if (client.player != null) {
+                        client.player.sendSystemMessage(Component.literal("[Crop Helper] Core missing; farming paused."));
+                    }
+                }
+                if (SchematicManager.isBuilding()) SchematicManager.stop(client);
+                return;
+            }
             tickFarm(client);
             SchematicManager.tick(client);
         });
+    }
+
+    private static boolean requireCore(FabricClientCommandSource source) {
+        if (hasCore(Minecraft.getInstance())) return true;
+        source.sendFeedback(Component.literal("Crop Helper is locked. Craft a Crop Helper Core (2 iron ingots, 3 wheat, 1 iron hoe, 1 redstone dust) and keep it in your inventory."));
+        return false;
+    }
+
+    private static boolean hasCore(Minecraft client) {
+        if (client.player == null) return false;
+        for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
+            if (client.player.getInventory().getItem(i).is(CropHelperMod.CROP_HELPER_CORE)) return true;
+        }
+        return false;
     }
 
     private static void tickFarm(Minecraft client) {
