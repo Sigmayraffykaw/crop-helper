@@ -1,0 +1,156 @@
+{
+  "name": "Small wheat plot foundation",
+  "description": "A fenced 5x5 starter plot. Add water and hoe the dirt yourself before planting.",
+  "blocks": [
+    {
+      "x": -2,
+      "y": 0,
+      "z": -2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": -1,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 0,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 1,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -2,
+      "y": 0,
+      "z": 2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": -1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 0,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": -1,
+      "y": 0,
+      "z": 2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": -1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "z": 2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": -1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 0,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 1,
+      "block": "minecraft:dirt"
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "z": 2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": -2,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": -1,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 0,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 1,
+      "block": "minecraft:oak_fence"
+    },
+    {
+      "x": 2,
+      "y": 0,
+      "z": 2,
+      "block": "minecraft:oak_fence"
+    }
+  ]
+}
