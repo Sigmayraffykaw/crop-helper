@@ -14,8 +14,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -121,7 +120,7 @@ final class SchematicManager {
             message(client, "Preview a plan first with /farm build <name>.");
             return;
         }
-        if (!(client.screen instanceof AbstractContainerScreen<?>)) {
+        if (client.player.containerMenu == client.player.inventoryMenu) {
             message(client, "Open the supply chest/container first, then run /farm pull.");
             return;
         }
@@ -142,7 +141,7 @@ final class SchematicManager {
                 int have = carried.getOrDefault(key, 0);
                 if (needed <= have) continue;
                 int amount = stack.getCount();
-                client.gameMode.handleInventoryMouseClick(menu.containerId, slotIndex, 0, ClickType.QUICK_MOVE, client.player);
+                client.gameMode.handleContainerInput(menu.containerId, slotIndex, 0, ContainerInput.QUICK_MOVE, client.player);
                 carried.merge(key, amount, Integer::sum);
                 moved++;
             }
