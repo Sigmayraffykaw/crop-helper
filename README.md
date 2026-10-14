@@ -1,6 +1,6 @@
 # Crop Helper 🌾
 
-A Fabric helper for Minecraft Java Edition **26.3**. Most features run client-side; craft and carry a Crop Helper Core to unlock them.
+A Fabric helper for Minecraft Java Edition **26.3**. Most features run client-side; craft and carry a Crop Helper Core to unlock them. Because the Core is a custom item and recipe, multiplayer servers must also install Crop Helper.
 
 ## Unlocking Crop Helper
 
