@@ -28,10 +28,11 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
+def modVersionForResources = project.version.toString()
 processResources {
-    inputs.property "version", project.version
+    inputs.property "version", modVersionForResources
     filesMatching("fabric.mod.json") {
-        expand "version": version
+        expand "version": modVersionForResources
     }
 }
 
