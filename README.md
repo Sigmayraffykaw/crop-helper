@@ -2,20 +2,38 @@
 
 A client-side Fabric helper for Minecraft Java Edition **26.3**.
 
-## Included in this first implementation
+## Features in this starter implementation
 
 - `/farm scan` — count mature and growing supported crops within 4 blocks of the player.
-- `/farm materials` — summarize items in nearby loaded containers within 4 blocks; it does not withdraw items from chests or yet compare them with a schematic.
-- `/farm start` — enable nearby crop harvesting/replanting attempts.
-- `/farm stop` — pause automation.
-- `/farm status` — show whether automation is running.
-- The crop loop handles mature wheat, carrots, potatoes and beetroot, and only attempts to harvest when matching replant items are in the hotbar.
+- `/farm start` and `/farm stop` — start or pause first-pass nearby harvest/replant automation for wheat, carrots, potatoes and beetroot.
+- `/farm status` — show whether crop automation is running.
+- `/farm materials` — summarise nearby loaded containers.
+- `/farm build small_wheat` — preview a schematic and compare its block requirements against your inventory and nearby chests.
+- `/farm build confirm` — begin placing the previewed schematic, one block at a time. Use `/farm stop` to cancel.
 
-## Still in progress
+## Schematic support
 
-- Reading chest inventories and calculating a schematic's exact material requirements.
-- Importing schematic files, previewing the build, and placing blocks from a confirmed plan.
-- End-to-end build and in-game testing. The current automation is a first pass and may need fixes for Minecraft 26.3 mappings or particular servers.
+This first builder version uses Crop Helper's **JSON block-plan format**, not Sponge `.schem` or Litematica `.litematic` files yet.
+
+A sample `small_wheat` plot is included. It places a 5x5 dirt/fence foundation; you still need to add water, hoe the dirt, and plant crops yourself.
+
+To add a custom plan, create:
+
+` .minecraft/config/crop-helper/schematics/my_plot.json `
+
+Example format:
+
+```json
+{
+  "name": "My plot",
+  "blocks": [
+    { "x": 0, "y": 0, "z": 0, "block": "minecraft:dirt" },
+    { "x": 1, "y": 0, "z": 0, "block": "minecraft:oak_fence" }
+  ]
+}
+```
+
+Coordinates are relative to a point three blocks in front of the player. Keep each offset within 32 blocks and each plan at 512 blocks or fewer. Use ordinary placeable blocks with item forms. The builder only places into air or replaceable positions; it skips occupied positions rather than replacing existing builds. The player must have all required materials in their inventory and the needed block types in the hotbar. Take materials out of the chest first; automatic chest extraction is not implemented yet.
 
 ## Development setup
 
@@ -27,17 +45,9 @@ A client-side Fabric helper for Minecraft Java Edition **26.3**.
 
 Open this repository as a Gradle project in IntelliJ IDEA or VS Code with Java extensions. Run `gradle build` after installing Java 25 and Gradle. A successful build creates the mod JAR in `build/libs/`.
 
-## Commands
+## Important limits
 
-These are client commands; use them in chat in a world with the mod installed:
-
-- `/farm status`
-- `/farm scan`
-- `/farm start`
-- `/farm stop`
-
-The `/farm build <schematic>` command is currently a placeholder and does not place blocks yet. Schematic parsing, a build preview, and using chest contents to supply a build are not implemented yet.
-
-## Safety and compatibility
-
-Automation interacts with the world like a player and can be blocked by server rules or anti-cheat. Test in a backup copy of a single-player world first.
+- The project is still being built and tested. Do not assume a working installable JAR until GitHub Actions reports a successful build.
+- Standard Sponge and Litematica schematic formats are not supported yet.
+- The builder does not automatically pull items out of chests, place water with buckets, hoe soil, or plant crops.
+- Automation can be blocked by server rules or anti-cheat. Test in a backup single-player world first.
