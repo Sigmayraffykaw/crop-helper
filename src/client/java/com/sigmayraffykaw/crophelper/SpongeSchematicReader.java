@@ -45,10 +45,12 @@ final class SpongeSchematicReader {
                 if (width < 1 || height < 1 || length < 1 || volume > maxBlocks) {
                     throw new IOException("Schematic volume must be between 1 and " + maxBlocks + " blocks (found " + volume + ").");
                 }
-                Object paletteValue = schematic.get("Palette");
-                Object dataValue = schematic.get("BlockData");
+                Object blocksValue = schematic.get("Blocks");
+                Map<?, ?> blockSection = blocksValue instanceof Map<?, ?> map ? map : schematic;
+                Object paletteValue = blockSection.get("Palette");
+                Object dataValue = blockSection.containsKey("Data") ? blockSection.get("Data") : blockSection.get("BlockData");
                 if (!(paletteValue instanceof Map<?, ?> palette) || !(dataValue instanceof byte[] data)) {
-                    throw new IOException("Expected Sponge Palette compound and BlockData byte array.");
+                    throw new IOException("Expected Sponge Palette compound and Data/BlockData byte array.");
                 }
 
                 Map<Integer, String> names = new LinkedHashMap<>();
