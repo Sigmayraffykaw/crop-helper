@@ -109,6 +109,10 @@ public final class CropHelperClient implements ClientModInitializer {
                     if (counts.isEmpty()) context.getSource().sendFeedback(Component.literal("The nearby containers are empty."));
                     return 1;
                 }))
+                .then(ClientCommands.literal("pull").executes(context -> {
+                    SchematicManager.pullFromOpenContainer(Minecraft.getInstance());
+                    return 1;
+                }))
                 .then(ClientCommands.literal("build")
                     .then(ClientCommands.literal("confirm").executes(context -> {
                         SchematicManager.confirm(Minecraft.getInstance());
