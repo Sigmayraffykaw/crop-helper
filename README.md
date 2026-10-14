@@ -2,38 +2,38 @@
 
 A client-side Fabric helper for Minecraft Java Edition **26.3**.
 
-## Features in this starter implementation
+## Features
 
-- `/farm scan` — count mature and growing supported crops within 4 blocks of the player.
+- `/farm scan` — count mature and growing supported crops near the player.
 - `/farm start` and `/farm stop` — start or pause first-pass nearby harvest/replant automation for wheat, carrots, potatoes and beetroot.
-- `/farm status` — show whether crop automation is running.
+- `/farm status` — show crop automation state.
 - `/farm materials` — summarise nearby loaded containers.
-- `/farm build small_wheat` — preview a schematic and compare its block requirements against your inventory and nearby chests.
-- `/farm build confirm` — begin placing the previewed schematic, one block at a time. Use `/farm stop` to cancel.
+- `/farm build small_wheat` — preview a schematic and compare required blocks with inventory and nearby chests.
+- `/farm build confirm` — start placing the previewed plan.
+- `/farm pull` — while a supply chest/container GUI is open, quick-move matching material stacks needed for the last previewed plan into your inventory.
 
-## Schematic support
+## Schematic formats
 
-This first builder version uses Crop Helper's **JSON block-plan format**, not Sponge `.schem` or Litematica `.litematic` files yet.
+Crop Helper supports its own JSON block-plan format and a basic subset of **Sponge `.schem`** files (palette-based v2/v3-style files).
 
-A sample `small_wheat` plot is included. It places a 5x5 dirt/fence foundation; you still need to add water, hoe the dirt, and plant crops yourself.
+- Put custom files in `.minecraft/config/crop-helper/schematics/`.
+- Use `/farm build my_plot` for `my_plot.json` or `my_plot.schem`.
+- A JSON plan contains a `blocks` array with `x`, `y`, `z`, and `block` fields.
+- Sponge schematics are centered on X/Z and placed with their bottom at the anchor height.
+- Current safety limits: at most 512 non-air blocks and offsets within 32 blocks.
+- Sponge palette state properties (for example stair direction) are not applied yet; the block is placed using its default state. Litematica `.litematic` files are not supported yet.
 
-To add a custom plan, create:
+The included `small_wheat` plan is a 5×5 dirt-and-fence foundation. Add water, hoe the dirt and plant crops yourself.
 
-` .minecraft/config/crop-helper/schematics/my_plot.json `
+## Typical use
 
-Example format:
+1. Copy a `.schem` or `.json` file into `.minecraft/config/crop-helper/schematics/`.
+2. Stand in a clear area and run `/farm build my_plot` to preview the plan and materials.
+3. Open the supply chest and run `/farm pull` to quick-move matching stacks into your inventory.
+4. Make sure all required blocks are in your inventory and the block types you need are in your hotbar.
+5. Run `/farm build confirm`. Use `/farm stop` to cancel.
 
-```json
-{
-  "name": "My plot",
-  "blocks": [
-    { "x": 0, "y": 0, "z": 0, "block": "minecraft:dirt" },
-    { "x": 1, "y": 0, "z": 0, "block": "minecraft:oak_fence" }
-  ]
-}
-```
-
-Coordinates are relative to a point three blocks in front of the player. Keep each offset within 32 blocks and each plan at 512 blocks or fewer. Use ordinary placeable blocks with item forms. The builder only places into air or replaceable positions; it skips occupied positions rather than replacing existing builds. The player must have all required materials in their inventory and the needed block types in the hotbar. Take materials out of the chest first; automatic chest extraction is not implemented yet.
+**Important:** `/farm pull` only works while a container screen is open and transfers matching stacks using normal quick-move inventory actions. It does not reach into closed chests. The builder skips occupied positions instead of replacing solid blocks, but always test in a backup world first. Client automation may be restricted by multiplayer server rules or anti-cheat.
 
 ## Development setup
 
@@ -43,11 +43,6 @@ Coordinates are relative to a point three blocks in front of the player. Keep ea
 - Fabric Loom 1.18-SNAPSHOT
 - Fabric API 0.162.0+26.3
 
-Open this repository as a Gradle project in IntelliJ IDEA or VS Code with Java extensions. Run `gradle build` after installing Java 25 and Gradle. A successful build creates the mod JAR in `build/libs/`.
+Open the repository as a Gradle project in IntelliJ IDEA or VS Code with Java extensions. Run `gradle build` with Java 25. A successful build creates the mod JAR in `build/libs/`.
 
-## Important limits
-
-- The project is still being built and tested. Do not assume a working installable JAR until GitHub Actions reports a successful build.
-- Standard Sponge and Litematica schematic formats are not supported yet.
-- The builder does not automatically pull items out of chests, place water with buckets, hoe soil, or plant crops.
-- Automation can be blocked by server rules or anti-cheat. Test in a backup single-player world first.
+The project is still under development. A successful CI build confirms compilation, not that every schematic or in-game interaction has been tested.
