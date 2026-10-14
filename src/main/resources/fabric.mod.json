@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "crop_helper",
+  "version": "${version}",
+  "name": "Crop Helper",
+  "description": "A farming helper for Minecraft Java Edition.",
+  "authors": ["Sigmayraffykaw"],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.sigmayraffykaw.crophelper.CropHelperMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
