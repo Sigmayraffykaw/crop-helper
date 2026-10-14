@@ -1,6 +1,18 @@
 # Crop Helper 🌾
 
-A client-side Fabric helper for Minecraft Java Edition **26.3**.
+A Fabric helper for Minecraft Java Edition **26.3**. Most features run client-side; craft and carry a Crop Helper Core to unlock them.
+
+## Unlocking Crop Helper
+
+Craft a **Crop Helper Core** in a crafting table using this recipe:
+
+```text
+Iron Ingot | Wheat       | Iron Ingot
+Wheat      | Iron Hoe    | Wheat
+(empty)    | Redstone    | (empty)
+```
+
+Keep the Core anywhere in your inventory to use the mod's features. If you remove it, farming pauses and an active schematic build stops. `/farm stop` remains available without the Core.
 
 ## Features
 
