@@ -5,6 +5,7 @@ A client-side Fabric helper for Minecraft Java Edition **26.3**.
 ## Included in this first implementation
 
 - `/farm scan` — count mature and growing supported crops within 4 blocks of the player.
+- `/farm materials` — summarize items in nearby loaded containers within 4 blocks; it does not withdraw items from chests or yet compare them with a schematic.
 - `/farm start` — enable nearby crop harvesting/replanting attempts.
 - `/farm stop` — pause automation.
 - `/farm status` — show whether automation is running.
@@ -35,7 +36,7 @@ These are client commands; use them in chat in a world with the mod installed:
 - `/farm start`
 - `/farm stop`
 
-The `/farm build <schematic>` command is currently a placeholder and does not place blocks yet.
+The `/farm build <schematic>` command is currently a placeholder and does not place blocks yet. Schematic parsing, a build preview, and using chest contents to supply a build are not implemented yet.
 
 ## Safety and compatibility
 
