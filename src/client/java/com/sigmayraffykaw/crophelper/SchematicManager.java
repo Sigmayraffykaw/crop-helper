@@ -198,7 +198,7 @@ final class SchematicManager {
             int z = obj.get("z").getAsInt();
             String id = obj.get("block").getAsString();
             Identifier key = Identifier.parse(id);
-            Block block = BuiltInRegistries.BLOCK.get(key);
+            Block block = BuiltInRegistries.BLOCK.getValue(key);
             if (block == Blocks.AIR || BuiltInRegistries.BLOCK.getKey(block) == null) throw new IllegalArgumentException("Unknown or air block: " + id);
             if (Math.abs(x) > 32 || Math.abs(y) > 32 || Math.abs(z) > 32) throw new IllegalArgumentException("Offsets must be within 32 blocks.");
             result.add(new BuildBlock(x, y, z, id, block));
@@ -253,7 +253,7 @@ final class SchematicManager {
     }
 
     private static void message(Minecraft client, String text) {
-        if (client.player != null) client.gui.getChat().addMessage(Component.literal("[Crop Helper] " + text));
+        if (client.player != null) client.player.sendSystemMessage(Component.literal("[Crop Helper] " + text));
     }
 
     private record BuildBlock(int x, int y, int z, String id, Block block) {}
