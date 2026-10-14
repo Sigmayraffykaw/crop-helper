@@ -3,7 +3,7 @@ package com.sigmayraffykaw.crophelper;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -37,24 +37,24 @@ public final class CropHelperClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("farm")
-                .then(ClientCommandManager.literal("start").executes(context -> {
+            dispatcher.register(ClientCommands.literal("farm")
+                .then(ClientCommands.literal("start").executes(context -> {
                     farming = true;
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming enabled. Stay near your crops; use /farm stop to pause."));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("stop").executes(context -> {
+                .then(ClientCommands.literal("stop").executes(context -> {
                     farming = false;
                     pendingReplant = null;
                     SchematicManager.stop(Minecraft.getInstance());
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming paused."));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("status").executes(context -> {
+                .then(ClientCommands.literal("status").executes(context -> {
                     context.getSource().sendFeedback(Component.literal("Crop Helper: " + (farming ? "RUNNING" : "PAUSED") + ". Range: " + RADIUS + " blocks. Use /farm scan to inspect crops."));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("scan").executes(context -> {
+                .then(ClientCommands.literal("scan").executes(context -> {
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
                         context.getSource().sendFeedback(Component.literal("Join a world first."));
@@ -65,14 +65,15 @@ public final class CropHelperClient implements ClientModInitializer {
                     for (BlockPos pos : scanPositions(client.player.blockPosition(), RADIUS)) {
                         BlockState state = client.level.getBlockState(pos);
                         if (state.getBlock() instanceof CropBlock crop) {
-                            if (state.getValue(crop.getAgeProperty()) >= crop.getMaxAge()) mature++;
+                            int age = cropAge(state);
+                            if (age >= crop.getMaxAge()) mature++;
                             else growing++;
                         }
                     }
                     context.getSource().sendFeedback(Component.literal("Crop scan (" + RADIUS + "-block radius): " + mature + " mature crops, " + growing + " still growing. This scan does not include crops outside the area."));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("materials").executes(context -> {
+                .then(ClientCommands.literal("materials").executes(context -> {
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
                         context.getSource().sendFeedback(Component.literal("Join a world first."));
@@ -108,12 +109,12 @@ public final class CropHelperClient implements ClientModInitializer {
                     if (counts.isEmpty()) context.getSource().sendFeedback(Component.literal("The nearby containers are empty."));
                     return 1;
                 }))
-                .then(ClientCommandManager.literal("build")
-                    .then(ClientCommandManager.literal("confirm").executes(context -> {
+                .then(ClientCommands.literal("build")
+                    .then(ClientCommands.literal("confirm").executes(context -> {
                         SchematicManager.confirm(Minecraft.getInstance());
                         return 1;
                     }))
-                    .then(ClientCommandManager.argument("schematic", StringArgumentType.word())
+                    .then(ClientCommands.argument("schematic", StringArgumentType.word())
                         .executes(context -> {
                             SchematicManager.preview(Minecraft.getInstance(), StringArgumentType.getString(context, "schematic"));
                             return 1;
@@ -155,7 +156,7 @@ public final class CropHelperClient implements ClientModInitializer {
         for (BlockPos pos : scanPositions(client.player.blockPosition(), RADIUS)) {
             BlockState state = client.level.getBlockState(pos);
             if (!(state.getBlock() instanceof CropBlock crop)) continue;
-            if (state.getValue(crop.getAgeProperty()) < crop.getMaxAge()) continue;
+            if (cropAge(state) < crop.getMaxAge()) continue;
             Item seed = seedFor(state.getBlock());
             if (seed == null) continue;
             // Require the matching replant item before harvesting, to avoid leaving empty farmland.
@@ -166,6 +167,13 @@ public final class CropHelperClient implements ClientModInitializer {
             pendingSeed = seed;
             return; // One crop per interval keeps interaction rate modest.
         }
+    }
+
+    private static int cropAge(BlockState state) {
+        for (var entry : state.getValues().entrySet()) {
+            if (entry.getKey().getName().equals("age") && entry.getValue() instanceof Integer age) return age;
+        }
+        return 0;
     }
 
     private static int findAnyMatchingSeed(Minecraft client, Item item) {
