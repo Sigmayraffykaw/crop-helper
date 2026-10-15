@@ -3,7 +3,7 @@ package com.sigmayraffykaw.crophelper;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.fabricmc.api.ModInitializer;
@@ -17,7 +17,7 @@ public final class CropHelperMod implements ModInitializer {
     public static final Item CROP_HELPER_CORE = registerCore();
 
     private static Item registerCore() {
-        Identifier id = Identifier.fromNamespaceAndPath(MOD_ID, "crop_helper_core");
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MOD_ID, "crop_helper_core");
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, id);
         Item item = new Item(new Item.Properties().setId(key));
         return Registry.register(BuiltInRegistries.ITEM, key, item);
