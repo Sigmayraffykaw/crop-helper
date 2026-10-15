@@ -9,12 +9,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -134,14 +134,14 @@ final class SchematicManager {
             for (int slotIndex = 0; slotIndex < containerSlots; slotIndex++) {
                 ItemStack stack = menu.getSlot(slotIndex).getItem();
                 if (stack.isEmpty()) continue;
-                Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
                 if (id == null) continue;
                 String key = id.toString();
                 int needed = required.getOrDefault(key, 0);
                 int have = carried.getOrDefault(key, 0);
                 if (needed <= have) continue;
                 int amount = stack.getCount();
-                client.gameMode.handleContainerInput(menu.containerId, slotIndex, 0, ContainerInput.QUICK_MOVE, client.player);
+                client.gameMode.handleInventoryMouseClick(menu.containerId, slotIndex, 0, ClickType.QUICK_MOVE, client.player);
                 carried.merge(key, amount, Integer::sum);
                 moved++;
             }
@@ -150,6 +150,7 @@ final class SchematicManager {
             message(client, "Could not pull materials: " + e.getMessage());
         }
     }
+
     static void stop(Minecraft client) {
         building = false;
         queue.clear();
@@ -241,7 +242,7 @@ final class SchematicManager {
             int y = obj.get("y").getAsInt();
             int z = obj.get("z").getAsInt();
             String id = obj.get("block").getAsString();
-            Identifier key = Identifier.parse(id);
+            ResourceLocation key = ResourceLocation.parse(id);
             Block block = BuiltInRegistries.BLOCK.getValue(key);
             if (block == Blocks.AIR || BuiltInRegistries.BLOCK.getKey(block) == null) throw new IllegalArgumentException("Unknown or air block: " + id);
             if (Math.abs(x) > 32 || Math.abs(y) > 32 || Math.abs(z) > 32) throw new IllegalArgumentException("Offsets must be within 32 blocks.");
@@ -262,7 +263,7 @@ final class SchematicManager {
         for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
             if (stack.isEmpty()) continue;
-            Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
             if (id != null) counts.merge(id.toString(), stack.getCount(), Integer::sum);
         }
         return counts;
@@ -280,7 +281,7 @@ final class SchematicManager {
                     for (int i = 0; i < container.getContainerSize(); i++) {
                         ItemStack stack = container.getItem(i);
                         if (!stack.isEmpty()) {
-                            Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                            ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
                             if (id != null) counts.merge(id.toString(), stack.getCount(), Integer::sum);
                         }
                     }
