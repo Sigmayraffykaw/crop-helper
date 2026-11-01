@@ -22,9 +22,16 @@ jobs:
           gradle-version: '9.7.0'
       - name: Build
         run: gradle build
+      - name: Prepare playable JAR only
+        run: |
+          mkdir -p release
+          find build/libs -maxdepth 1 -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' -exec cp {} release/ \;
+          echo "Playable JARs:"
+          ls -lh release/
+          test "$(find release -name '*.jar' | wc -l)" -eq 1
       - name: Upload mod JAR
         uses: actions/upload-artifact@v4
         with:
           name: crop-helper-mod
-          path: build/libs/*.jar
+          path: release/*.jar
           if-no-files-found: error
