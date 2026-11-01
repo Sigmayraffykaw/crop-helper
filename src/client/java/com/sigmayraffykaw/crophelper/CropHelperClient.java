@@ -4,7 +4,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -38,26 +38,26 @@ public final class CropHelperClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommands.literal("farm")
-                .then(ClientCommands.literal("start").executes(context -> {
+            dispatcher.register(ClientCommandManager.literal("farm")
+                .then(ClientCommandManager.literal("start").executes(context -> {
                     if (!requireCore(context.getSource())) return 0;
                     farming = true;
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming enabled. Stay near your crops; use /farm stop to pause."));
                     return 1;
                 }))
-                .then(ClientCommands.literal("stop").executes(context -> {
+                .then(ClientCommandManager.literal("stop").executes(context -> {
                     farming = false;
                     pendingReplant = null;
                     SchematicManager.stop(Minecraft.getInstance());
                     context.getSource().sendFeedback(Component.literal("Crop Helper: farming paused."));
                     return 1;
                 }))
-                .then(ClientCommands.literal("status").executes(context -> {
+                .then(ClientCommandManager.literal("status").executes(context -> {
                     if (!requireCore(context.getSource())) return 0;
                     context.getSource().sendFeedback(Component.literal("Crop Helper: " + (farming ? "RUNNING" : "PAUSED") + ". Range: " + RADIUS + " blocks. Use /farm scan to inspect crops."));
                     return 1;
                 }))
-                .then(ClientCommands.literal("scan").executes(context -> {
+                .then(ClientCommandManager.literal("scan").executes(context -> {
                     if (!requireCore(context.getSource())) return 0;
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
@@ -77,7 +77,7 @@ public final class CropHelperClient implements ClientModInitializer {
                     context.getSource().sendFeedback(Component.literal("Crop scan (" + RADIUS + "-block radius): " + mature + " mature crops, " + growing + " still growing. This scan does not include crops outside the area."));
                     return 1;
                 }))
-                .then(ClientCommands.literal("materials").executes(context -> {
+                .then(ClientCommandManager.literal("materials").executes(context -> {
                     if (!requireCore(context.getSource())) return 0;
                     Minecraft client = Minecraft.getInstance();
                     if (client.level == null || client.player == null) {
@@ -114,18 +114,18 @@ public final class CropHelperClient implements ClientModInitializer {
                     if (counts.isEmpty()) context.getSource().sendFeedback(Component.literal("The nearby containers are empty."));
                     return 1;
                 }))
-                .then(ClientCommands.literal("pull").executes(context -> {
+                .then(ClientCommandManager.literal("pull").executes(context -> {
                     if (!requireCore(context.getSource())) return 0;
                     SchematicManager.pullFromOpenContainer(Minecraft.getInstance());
                     return 1;
                 }))
-                .then(ClientCommands.literal("build")
-                    .then(ClientCommands.literal("confirm").executes(context -> {
+                .then(ClientCommandManager.literal("build")
+                    .then(ClientCommandManager.literal("confirm").executes(context -> {
                         if (!requireCore(context.getSource())) return 0;
                         SchematicManager.confirm(Minecraft.getInstance());
                         return 1;
                     }))
-                    .then(ClientCommands.argument("schematic", StringArgumentType.word())
+                    .then(ClientCommandManager.argument("schematic", StringArgumentType.word())
                         .executes(context -> {
                             if (!requireCore(context.getSource())) return 0;
                             SchematicManager.preview(Minecraft.getInstance(), StringArgumentType.getString(context, "schematic"));
@@ -141,7 +141,7 @@ public final class CropHelperClient implements ClientModInitializer {
                     pendingReplant = null;
                     pendingSeed = null;
                     if (client.player != null) {
-                        client.player.sendSystemMessage(Component.literal("[Crop Helper] Core missing; farming paused."));
+                        client.player.displayClientMessage(Component.literal("[Crop Helper] Core missing; farming paused."), false);
                     }
                 }
                 if (SchematicManager.isBuilding()) SchematicManager.stop(client);
@@ -208,8 +208,8 @@ public final class CropHelperClient implements ClientModInitializer {
     }
 
     private static int cropAge(BlockState state) {
-        for (var value : state.getValues().toList()) {
-            if (value.property().getName().equals("age") && value.value() instanceof Integer age) return age;
+        for (var value : state.getValues().entrySet()) {
+            if (value.getKey().getName().equals("age") && value.getValue() instanceof Integer age) return age;
         }
         return 0;
     }

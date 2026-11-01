@@ -14,7 +14,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -141,7 +141,7 @@ final class SchematicManager {
                 int have = carried.getOrDefault(key, 0);
                 if (needed <= have) continue;
                 int amount = stack.getCount();
-                client.gameMode.handleContainerInput(menu.containerId, slotIndex, 0, ContainerInput.QUICK_MOVE, client.player);
+                client.gameMode.handleInventoryMouseClick(menu.containerId, slotIndex, 0, ClickType.QUICK_MOVE, client.player);
                 carried.merge(key, amount, Integer::sum);
                 moved++;
             }
@@ -297,7 +297,7 @@ final class SchematicManager {
     }
 
     private static void message(Minecraft client, String text) {
-        if (client.player != null) client.player.sendSystemMessage(Component.literal("[Crop Helper] " + text));
+        if (client.player != null) client.player.displayClientMessage(Component.literal("[Crop Helper] " + text), false);
     }
 
     private record BuildBlock(int x, int y, int z, String id, Block block) {}
